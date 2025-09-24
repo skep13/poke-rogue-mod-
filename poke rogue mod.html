@@ -1,0 +1,107 @@
+(function () {
+  function findGameData(obj, path, seen = new WeakSet()) {
+    if (!obj || typeof obj !== 'object' || seen.has(obj)) return null;
+    seen.add(obj);
+
+    if (obj.starterData && obj.dexData) return { obj, path };
+
+    for (const [k, v] of Object.entries(obj)) {
+      const res = findGameData(v, `${path}.${k}`, seen);
+      if (res) return res;
+    }
+
+    return null;
+  }
+
+  const roots = [];
+
+  for (const k in window) {
+    try {
+      const v = window[k];
+      if (v && typeof v === 'object') {
+        roots.push({ obj: v, path: `window.${k}` });
+      }
+    } catch (e) {}
+  }
+
+  roots.push({ obj: window, path: 'window' });
+
+  let res = null;
+
+  for (const r of roots) {
+    res = findGameData(r.obj, r.path, new WeakSet());
+    if (res) break;
+  }
+
+  if (!res) {
+    console.warn('❌ No gameData object found.');
+    return;
+  }
+
+  const gd = res.obj;
+  console.log(`✅ Found gameData at ${res.path}`);
+
+  // === SAFE UNLOCK SCRIPT ===
+
+  // Only modify entries that already exist to avoid crashing the game
+  const starterKeys = Object.keys(gd.starterData).map(k => parseInt(k));
+  const dexKeys = Object.keys(gd.dexData).map(k => parseInt(k));
+  const validIDs = starterKeys.filter(id => dexKeys.includes(id));
+
+  for (const i of validIDs) {
+    if (!gd.starterData[i] || !gd.dexData[i]) continue;
+
+    Object.assign(gd.starterData[i], {
+      abilityAttr: 7,
+      candyCount: 200,
+      eggMoves: 15,
+      friendship: 90,
+      passiveAttr: 3,
+      valueReduction: 2
+    });
+
+    Object.assign(gd.dexData[i], {
+      caughtAttr: 255n,
+      ivs: [31, 31, 31, 31, 31, 31],
+      seenAttr: 479n,
+      caughtCount: 3,
+      hatchedCount: 3,
+      seenCount: 3,
+      natureAttr: 67108862
+    });
+  }
+
+  const targetIndices = [
+    2019, 2020, 2026, 2027, 2028, 2037, 2038, 2050, 2051, 2052, 2053,
+    2074, 2075, 2076, 2088, 2089, 2103, 2105, 2670, 4052, 4077, 4078,
+    4079, 4080, 4083, 4110, 4122, 4144, 4145, 4146, 4199, 4222, 4263,
+    4264, 4554, 4555, 4562, 4618, 6058, 6059, 6100, 6101, 6157, 6211,
+    6215, 6503, 6549, 6570, 6571, 6628, 6705, 6706, 6713, 6724, 8128,
+    8194, 8901
+  ];
+
+  for (const idx of targetIndices) {
+    if (gd.starterData[idx] && gd.dexData[idx]) {
+      Object.assign(gd.starterData[idx], {
+        abilityAttr: 7,
+        candyCount: 200,
+        eggMoves: 15,
+        friendship: 90,
+        passiveAttr: 3,
+        valueReduction: 2
+      });
+
+      Object.assign(gd.dexData[idx], {
+        caughtAttr: 255n,
+        ivs: [31, 31, 31, 31, 31, 31],
+        seenAttr: 479n,
+        caughtCount: 3,
+        hatchedCount: 3,
+        seenCount: 3,
+        natureAttr: 67108862
+      });
+    }
+  }
+
+  console.log(`✨ Done — modified ${validIDs.length} entries safely.`);
+})();
