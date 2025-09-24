@@ -1,2 +1,5 @@
+enter command into console via developer tools then start a new game to see if unlocks worked if not refressh and start again in the egg gacha
+
+
 # poke-rogue-mod-
 unlocks everything in pokerogue
